@@ -1,0 +1,20 @@
+name = "wa-express-cod"
+main = "worker.js"
+compatibility_date = "2026-07-01"
+
+[[kv_namespaces]]
+binding = "SAAS_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_YOUR_PREVIEW_KV_ID"
+
+[vars]
+ALLOWED_ORIGINS = "https://your-pages-domain.pages.dev,https://your-username.github.io"
+SUPPORT_WA = "923001234567"
+APP_VERSION = "1.0.0"
+
+# Set secrets via `wrangler secret put <NAME>` or Cloudflare Dashboard:
+# - ENCRYPTION_KEY   (base64-encoded 32 bytes, e.g. `openssl rand -base64 32`)
+# - SESSION_SECRET   (random 32+ char string)
+# - PIN_PEPPER       (random 32+ char string)
+# - SUPER_ADMIN_KEY  (high-entropy admin passphrase)
+# - TURNSTILE_SECRET (optional; Cloudflare Turnstile secret key)

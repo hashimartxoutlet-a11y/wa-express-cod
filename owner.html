@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; connect-src 'self' https:;" />
+  <title>Owner Portal · WA Express COD</title>
+  <script>
+    const CONFIG = {
+      API_BASE: "https://wa-express-cod.YOUR-SUBDOMAIN.workers.dev",
+      TURNSTILE_SITE_KEY: "",
+      FRONTEND_BASE: "https://your-pages-domain.pages.dev",
+      BRAND_NAME: "WA Express COD"
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+<script src="/_aistudio-iframe.js?v=29045eb3"></script></head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <header class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-6">
+      <div>
+        <h1 class="text-xl font-extrabold text-slate-900" id="portalBrand">WA Express COD · Seller Portal</h1>
+        <p class="text-xs text-slate-500">Zero-API WhatsApp COD checkout for Shopify stores</p>
+      </div>
+      <div id="headerAuthed" class="hidden flex items-center gap-2">
+        <select id="storeSwitcher" class="hidden px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white"></select>
+        <span id="activeSlugBadge" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-teal-100 text-teal-800"></span>
+        <button id="logoutBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-100">Logout</button>
+      </div>
+    </header>
+
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-medium shadow-lg"></div>
+
+    <div id="authView" class="grid md:grid-cols-2 gap-6">
+      <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <h2 class="text-base font-bold">Seller Login</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Store Slug</label>
+            <input id="loginSlug" type="text" placeholder="my-brand" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">PIN (4-6 digits)</label>
+            <input id="loginPin" type="password" inputmode="numeric" maxlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          </div>
+          <p id="loginErr" class="hidden text-xs text-rose-600 font-medium"></p>
+          <button id="loginBtn" type="button" class="w-full py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm">Sign In</button>
+        </div>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+        <h2 class="text-base font-bold">Create Store Account (Free Starter)</h2>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Slug *</label><input id="regSlug" type="text" placeholder="my-brand" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Brand Name *</label><input id="regBrand" type="text" placeholder="My Brand" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1">Shopify Domain *</label><input id="regDomain" type="text" placeholder="my-brand.myshopify.com" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Country</label>
+            <select id="regCountry" class="w-full px-2.5 py-2 border border-slate-300 rounded-xl text-sm bg-white">
+              <option value="PK">PK</option><option value="AE">AE</option><option value="SA">SA</option><option value="QA">QA</option><option value="KW">KW</option><option value="BH">BH</option><option value="OM">OM</option>
+            </select>
+          </div>
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp *</label><input id="regWa" type="tel" placeholder="923001234567" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Delivery Fee</label><input id="regFee" type="number" min="0" value="200" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Shopify Connection Mode</label>
+          <div class="flex gap-4 text-xs font-medium">
+            <label class="flex items-center gap-1.5"><input type="radio" name="regMode" value="devdash" checked /> Dev Dashboard (2026+)</label>
+            <label class="flex items-center gap-1.5"><input type="radio" name="regMode" value="legacy" /> Legacy Token (shpat_)</label>
+          </div>
+        </div>
+        <div id="regDevFields" class="grid grid-cols-2 gap-2.5">
+          <input id="regClientId" type="text" placeholder="Client ID" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          <input id="regClientSecret" type="password" placeholder="Client Secret" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+        </div>
+        <div id="regLegacyField" class="hidden"><input id="regToken" type="password" placeholder="shpat_..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <input id="regPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN (4-6 digits)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          <input id="regPin2" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+        </div>
+        <p id="regErr" class="hidden text-xs text-rose-600 font-medium"></p>
+        <button id="regBtn" type="button" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm">Register Store</button>
+      </section>
+    </div>
+
+    <div id="dashView" class="hidden space-y-5">
+      <nav class="flex flex-wrap gap-2">
+        <button data-tab="connect" class="tabBtn px-3.5 py-2 rounded-xl text-sm font-bold bg-teal-700 text-white">Connect</button>
+        <button data-tab="links" class="tabBtn px-3.5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700">Links</button>
+        <button data-tab="usage" class="tabBtn px-3.5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700">Usage &amp; Plan</button>
+        <button data-tab="upgrade" class="tabBtn px-3.5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700">Upgrade</button>
+        <button data-tab="help" class="tabBtn px-3.5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700">Help</button>
+      </nav>
+
+      <section id="tab-connect" class="tabPanel bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 class="text-base font-bold">Shopify Connection &amp; Store Settings</h2><p id="connMeta" class="text-xs text-slate-500"></p></div>
+          <button id="testConnBtn" type="button" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold">Test Connection</button>
+        </div>
+        <div id="connErrorBanner" class="hidden bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl p-3"></div>
+        <div id="testResults" class="hidden space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50"></div>
+
+        <details class="border border-slate-200 rounded-xl p-3 bg-slate-50">
+          <summary class="font-bold text-sm cursor-pointer text-teal-800">Connect Shopify Guide (Dev Dashboard Mode A)</summary>
+          <ol class="list-decimal pl-5 mt-2 space-y-1 text-xs text-slate-700">
+            <li>Open <a href="https://dev.shopify.com/dashboard" target="_blank" rel="noopener noreferrer" class="underline font-semibold">dev.shopify.com/dashboard</a> with the account that owns the store.</li>
+            <li>Create an app: set App URL to <code>https://shopify.dev/apps/default-app-home</code>, <strong>UNCHECK</strong> "Embed app in Shopify admin", <strong>UNCHECK</strong> "Use legacy install flow", and add no webhooks.</li>
+            <li>Go to <strong>Versions</strong>: add scopes <code>read_products</code> and <code>write_orders</code>, then click <strong>Release</strong>.</li>
+            <li>Install the app on your store from the app <strong>Home</strong> page.</li>
+            <li>Go to <strong>Settings</strong>: copy the <strong>Client ID</strong> and <strong>Client Secret</strong> and paste them below.</li>
+          </ol>
+          <p class="text-[11px] text-slate-500 mt-2 italic">Note: Shopify UI wording may change slightly.</p>
+        </details>
+
+        <div class="grid md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          <div class="space-y-2.5">
+            <h3 class="text-sm font-bold">Rotate Shopify Credentials</h3>
+            <p id="maskedCreds" class="text-xs text-slate-500"></p>
+            <div class="flex gap-3 text-xs font-medium">
+              <label class="flex items-center gap-1"><input type="radio" name="rotMode" value="devdash" checked /> Dev Dashboard</label>
+              <label class="flex items-center gap-1"><input type="radio" name="rotMode" value="legacy" /> Legacy</label>
+            </div>
+            <div id="rotDevFields" class="space-y-2">
+              <input id="rotClientId" type="text" placeholder="New Client ID" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+              <input id="rotClientSecret" type="password" placeholder="New Client Secret" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            </div>
+            <div id="rotLegField" class="hidden"><input id="rotToken" type="password" placeholder="shpat_..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+            <button id="saveCredsBtn" type="button" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Update Credentials</button>
+          </div>
+          <div class="space-y-2.5">
+            <h3 class="text-sm font-bold">Change Owner PIN</h3>
+            <input id="curPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN (4-6 digits)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <button id="savePinBtn" type="button" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Update PIN</button>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 space-y-4">
+          <h3 class="text-sm font-bold">Checkout Rules, Upsell &amp; Branding</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs font-semibold text-slate-600">WhatsApp Number</label>
+              <input id="setWa" type="tel" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+              <label class="block text-xs font-semibold text-slate-600">Base Delivery Fee</label>
+              <input id="setBaseFee" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+              <div id="growthDeliveryBox" class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-600">Free Delivery Above (Growth+)</label>
+                <input id="setFreeAbove" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                <label class="block text-xs font-semibold text-slate-600">COD Fee (Growth+)</label>
+                <input id="setCodFee" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                <label class="block text-xs font-semibold text-slate-600">Per-City Overrides (City:Fee per line, Growth+)</label>
+                <textarea id="setCityFees" rows="2" placeholder="Karachi:150&#10;Lahore:180" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"></textarea>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div id="upsellBox" class="space-y-2">
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700"><input id="setUpsellEnabled" type="checkbox" /> Enable Bundle Upsell (+1 Extra Piece)</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <select id="setUpsellType" class="px-3 py-2 border border-slate-300 rounded-xl text-sm bg-white"><option value="percent">% Off Extra</option><option value="fixed">Fixed Off</option></select>
+                  <input id="setUpsellVal" type="number" min="0" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                </div>
+                <label class="block text-xs font-semibold text-slate-600">Per-Product Overrides (handle:type:val per line)</label>
+                <textarea id="setUpsellOv" rows="2" placeholder="summer-kurta:percent:15" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"></textarea>
+              </div>
+              <div id="brandingBox" class="space-y-2 pt-2">
+                <label class="block text-xs font-semibold text-slate-600">Brand Color &amp; Logo URL (Growth+)</label>
+                <div class="flex gap-2">
+                  <input id="setColor" type="color" value="#0f766e" class="h-9 w-12 rounded border border-slate-300" />
+                  <input id="setLogoUrl" type="url" placeholder="https://.../logo.png" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                </div>
+                <div id="whitelabelBox" class="space-y-2">
+                  <input id="setPageTitle" type="text" placeholder="White-label Page Title (Agency)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                  <div class="grid grid-cols-3 gap-2">
+                    <input id="setEmojiFav" type="text" maxlength="4" placeholder="🛍️" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                    <input id="setFooterText" type="text" placeholder="Custom Footer Text (Agency)" class="col-span-2 px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p id="lockedHint" class="hidden text-xs text-amber-700 font-medium">Some fields are locked on Starter. Upgrade to Growth or Agency to unlock custom rules &amp; branding.</p>
+          <button id="saveSettingsBtn" type="button" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm">Save Store Settings</button>
+        </div>
+      </section>
+
+      <section id="tab-links" class="tabPanel hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <h2 class="text-base font-bold">Checkout Link &amp; WhatsApp Quick Reply Generator</h2>
+        <div class="grid md:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Select Product (Optional)</label><select id="linkProdSelect" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm bg-white"><option value="">All Products (General Store Link)</option></select></div>
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Source Tag (?src=, optional)</label><input id="linkSrc" type="text" placeholder="wa-qr / fb-ad" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" /></div>
+        </div>
+        <button id="refreshProdsBtn" type="button" class="text-xs font-bold text-teal-700 underline">Load / Refresh Shopify Products</button>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <p class="text-xs font-semibold text-slate-600">Direct Checkout URL</p>
+          <input id="generatedUrl" type="text" readonly class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-mono" />
+          <div class="flex flex-wrap gap-2">
+            <button id="copyUrlBtn" type="button" class="px-3.5 py-2 rounded-lg bg-teal-700 text-white text-xs font-bold">Copy Link</button>
+            <button id="copyQrBtn" type="button" class="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold">Copy as WhatsApp Quick Reply</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-usage" class="tabPanel hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between"><h2 class="text-base font-bold">Monthly Usage &amp; Plan Status</h2><span class="text-xs text-slate-500">Counts are approximate</span></div>
+        <div id="usageWaWarn" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">Order quota reached. Customers are being sent to WhatsApp-only mode (no Shopify orders created).</div>
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm font-bold"><span id="usageCounts">0 / 15 orders</span><span id="usagePct">0%</span></div>
+          <div class="w-full h-3.5 rounded-full bg-slate-200 overflow-hidden"><div id="usageBar" class="h-full bg-emerald-600 transition-all" style="width:0%"></div></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><p class="text-slate-500">Plan</p><p id="uPlan" class="font-bold text-sm mt-0.5 uppercase"></p></div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><p class="text-slate-500">Expires</p><p id="uExpiry" class="font-bold text-sm mt-0.5"></p></div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><p class="text-slate-500">Reset Date</p><p id="uReset" class="font-bold text-sm mt-0.5"></p></div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><p class="text-slate-500">Overage</p><p id="uOver" class="font-bold text-sm mt-0.5"></p></div>
+          </div>
+        </div>
+        <div id="agencySection" class="hidden pt-4 border-t border-slate-200 space-y-3">
+          <h3 class="text-sm font-bold">Agency Child Stores (Pooled 2,500 Orders)</h3>
+          <div id="childList" class="flex flex-wrap gap-2"></div>
+          <div class="grid md:grid-cols-3 gap-2 pt-2">
+            <input id="chSlug" type="text" placeholder="child-slug" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="chBrand" type="text" placeholder="Child Brand Name" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="chDomain" type="text" placeholder="child.myshopify.com" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="chWa" type="tel" placeholder="WhatsApp 923..." class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="chCid" type="text" placeholder="DevDash Client ID" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+            <input id="chCsec" type="password" placeholder="DevDash Client Secret" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          </div>
+          <button id="addChildBtn" type="button" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Add Child Store</button>
+        </div>
+      </section>
+
+      <section id="tab-upgrade" class="tabPanel hidden space-y-4">
+        <div class="grid md:grid-cols-3 gap-3" id="planCards"></div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="text-base font-bold">Payment Instructions &amp; Submit Upgrade</h3>
+          <div id="payInstrBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1"></div>
+          <div class="grid md:grid-cols-2 gap-3">
+            <select id="upPlan" class="px-3 py-2 border border-slate-300 rounded-xl text-sm bg-white"><option value="growth">Growth (Rs 1,299/mo · $4.99/mo)</option><option value="agency">Agency (Rs 4,499/mo · $16.50/mo)</option></select>
+            <select id="upMonths" class="px-3 py-2 border border-slate-300 rounded-xl text-sm bg-white"><option value="1">1 Month</option><option value="12">12 Months (Pay 10, Get 12)</option></select>
+            <select id="upMethod" class="px-3 py-2 border border-slate-300 rounded-xl text-sm bg-white"><option value="SadaPay">SadaPay</option><option value="Easypaisa">Easypaisa</option><option value="Bank Transfer">Bank Transfer</option><option value="USDT (TRC20)">USDT (TRC20)</option><option value="Payoneer">Payoneer</option></select>
+            <input id="upTxnRef" type="text" placeholder="Transaction Reference / TID *" class="px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          </div>
+          <input id="upNote" type="text" placeholder="Optional note (e.g. sender name)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+          <button id="submitUpgradeBtn" type="button" class="px-5 py-2.5 rounded-xl bg-teal-700 text-white font-bold text-sm">Submit Upgrade Request</button>
+          <div id="upgradeWaWrap" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-3">
+            <span class="text-xs font-medium text-emerald-900">Request submitted! Send receipt details on WhatsApp for faster activation:</span>
+            <a id="upgradeWaLink" href="#" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold shrink-0">Notify on WhatsApp</a>
+          </div>
+          <div class="pt-3 border-t border-slate-200"><h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Recent Upgrade Requests</h4><div id="myReqList" class="space-y-1.5 text-xs"></div></div>
+        </div>
+      </section>
+
+      <section id="tab-help" class="tabPanel hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 text-sm text-slate-700">
+        <h2 class="text-base font-bold text-slate-900">Quick Help &amp; FAQ</h2>
+        <p><strong>1. How do orders appear in Shopify?</strong> As normal pending COD orders with tags <code>wa-express-cod</code>, <code>COD</code>, and inventory decremented per your product policy.</p>
+        <p><strong>2. What happens if I hit my monthly limit?</strong> On Growth/Agency, overage kicks in up to 20%/25%. After the hard cap, customers automatically fall back to WhatsApp-only mode so you never lose a sale.</p>
+        <p><strong>3. WhatsApp Quick Replies:</strong> Use the <strong>Links</strong> tab to copy a pre-formatted Roman-Urdu/English reply and save it in WhatsApp Business Quick Replies (e.g. <code>/order</code>).</p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    let state = { token: sessionStorage.getItem("wa_owner_tok") || "", store: null, primarySlug: "", primaryPlan: "starter", children: [], activeSlug: "", paymentInfo: {}, supportWa: "", plans: {}, idleTimer: null };
+    function toast(msg) { el("toast").textContent = msg; el("toast").classList.remove("hidden"); setTimeout(() => el("toast").classList.add("hidden"), 2600); }
+    function resetIdleTimer() { clearTimeout(state.idleTimer); if (state.token) state.idleTimer = setTimeout(() => logout("Logged out after 30 minutes of inactivity."), 30 * 60_000); }
+    ["click","keydown","mousemove"].forEach((ev) => document.addEventListener(ev, resetIdleTimer));
+    function logout(msg) { state.token = ""; state.activeSlug = ""; sessionStorage.removeItem("wa_owner_tok"); el("dashView").classList.add("hidden"); el("headerAuthed").classList.add("hidden"); el("authView").classList.remove("hidden"); if (msg) toast(msg); }
+
+    async function api(path, method = "GET", body = null) {
+      const headers = {};
+      if (state.token) headers["Authorization"] = `Bearer ${state.token}`;
+      if (state.activeSlug) headers["X-Store-Slug"] = state.activeSlug;
+      if (body !== null) headers["Content-Type"] = "text/plain;charset=UTF-8";
+      const res = await fetch(`${CONFIG.API_BASE}${path}`, { method, headers, body: body !== null ? JSON.stringify(body) : undefined });
+      const data = await res.json();
+      if (res.status === 401 && state.token) logout("Session expired. Please sign in again.");
+      return { res, data };
+    }
+
+    document.querySelectorAll('input[name="regMode"]').forEach((r) => r.addEventListener("change", (e) => { el("regDevFields").classList.toggle("hidden", e.target.value !== "devdash"); el("regLegacyField").classList.toggle("hidden", e.target.value !== "legacy"); }));
+    document.querySelectorAll('input[name="rotMode"]').forEach((r) => r.addEventListener("change", (e) => { el("rotDevFields").classList.toggle("hidden", e.target.value !== "devdash"); el("rotLegField").classList.toggle("hidden", e.target.value !== "legacy"); }));
+
+    el("loginBtn").addEventListener("click", async () => {
+      el("loginErr").classList.add("hidden");
+      const { res, data } = await api("/api/owner/login", "POST", { slug: el("loginSlug").value.trim(), pin: el("loginPin").value.trim() });
+      if (!res.ok || !data.ok) { el("loginErr").textContent = data.message; el("loginErr").classList.remove("hidden"); return; }
+      state.token = data.token; state.activeSlug = data.store.slug; sessionStorage.setItem("wa_owner_tok", state.token); await loadDashboard();
+    });
+
+    el("regBtn").addEventListener("click", async () => {
+      el("regErr").classList.add("hidden");
+      const pin = el("regPin").value.trim();
+      if (pin !== el("regPin2").value.trim()) { el("regErr").textContent = "PINs do not match."; el("regErr").classList.remove("hidden"); return; }
+      const mode = document.querySelector('input[name="regMode"]:checked').value;
+      const conn = mode === "legacy" ? { mode, token: el("regToken").value.trim() } : { mode, clientId: el("regClientId").value.trim(), clientSecret: el("regClientSecret").value.trim() };
+      const { res, data } = await api("/api/owner/register", "POST", {
+        slug: el("regSlug").value.trim(), brand: el("regBrand").value.trim(), domain: el("regDomain").value.trim(),
+        country: el("regCountry").value, whatsapp: el("regWa").value.trim(), deliveryFee: el("regFee").value, pin, conn
+      });
+      if (!res.ok || !data.ok) { el("regErr").textContent = data.message; el("regErr").classList.remove("hidden"); return; }
+      state.token = data.token; state.activeSlug = data.store.slug; sessionStorage.setItem("wa_owner_tok", state.token);
+      toast("Store created! Next, test your Shopify connection."); await loadDashboard();
+    });
+
+    el("logoutBtn").addEventListener("click", () => logout("Signed out."));
+
+    document.querySelectorAll(".tabBtn").forEach((btn) => btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-tab");
+      document.querySelectorAll(".tabBtn").forEach((b) => {
+        const active = b.getAttribute("data-tab") === target;
+        b.className = `tabBtn px-3.5 py-2 rounded-xl text-sm font-bold ${active ? "bg-teal-700 text-white" : "bg-white border border-slate-200 text-slate-700"}`;
+      });
+      document.querySelectorAll(".tabPanel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
+      if (target === "usage") loadUsage();
+    }));
+
+    function updateGeneratedUrl() {
+      const slug = state.store?.slug || "", prod = el("linkProdSelect").value, src = el("linkSrc").value.trim();
+      const u = new URL(CONFIG.FRONTEND_BASE + "/index.html");
+      u.searchParams.set("store", slug);
+      if (prod) u.searchParams.set("product", prod);
+      if (src) u.searchParams.set("src", src);
+      el("generatedUrl").value = u.toString();
+    }
+
+    async function loadDashboard() {
+      const { res, data } = await api("/api/owner/me");
+      if (!res.ok || !data.ok) return;
+      state.store = data.store; state.primarySlug = data.primarySlug; state.primaryPlan = data.primaryPlan;
+      state.children = data.children || []; state.paymentInfo = data.paymentInfo || {}; state.supportWa = data.supportWa || ""; state.plans = data.plans || {};
+      if (!state.activeSlug) state.activeSlug = data.store.slug;
+
+      el("authView").classList.add("hidden"); el("dashView").classList.remove("hidden"); el("headerAuthed").classList.remove("hidden");
+      el("activeSlugBadge").textContent = `${state.store.slug} (${state.store.effectivePlan.toUpperCase()})`;
+
+      const sw = el("storeSwitcher");
+      if (state.primaryPlan === "agency" && state.children.length) {
+        sw.innerHTML = "";
+        [{ slug: state.primarySlug, brand: "Primary Account" }, ...state.children].forEach((c) => {
+          const o = document.createElement("option"); o.value = c.slug; o.textContent = `${c.slug} (${c.brand})`; sw.appendChild(o);
+        });
+        sw.value = state.activeSlug; sw.classList.remove("hidden");
+      } else sw.classList.add("hidden");
+
+      const st = state.store;
+      el("connMeta").textContent = `${st.domain} · Currency: ${st.currency} · Status: ${st.status}`;
+      el("maskedCreds").textContent = st.conn.mode === "legacy" ? `Mode: Legacy (${st.conn.maskedToken})` : `Mode: Dev Dashboard (${st.conn.maskedClientId} / ${st.conn.maskedClientSecret})`;
+      el("connErrorBanner").classList.toggle("hidden", !data.connError);
+      if (data.connError) el("connErrorBanner").textContent = `Recent Shopify order fallback triggered: ${data.connError.msg}`;
+
+      el("setWa").value = st.whatsapp || ""; el("setBaseFee").value = st.deliveryRules?.baseFee ?? 0;
+      el("setFreeAbove").value = st.deliveryRules?.freeAbove ?? 0; el("setCodFee").value = st.deliveryRules?.codFee ?? 0;
+      el("setCityFees").value = Object.entries(st.deliveryRules?.cityFees || {}).map(([k, v]) => `${k}:${v}`).join("\n");
+      el("setUpsellEnabled").checked = st.upsell?.enabled !== false; el("setUpsellType").value = st.upsell?.type || "percent";
+      el("setUpsellVal").value = st.upsell?.value ?? 10;
+      el("setUpsellOv").value = Object.entries(st.upsell?.overrides || {}).map(([h, o]) => `${h}:${o.type}:${o.value}`).join("\n");
+      el("setColor").value = st.branding?.color || "#0f766e"; el("setLogoUrl").value = st.branding?.logoUrl || "";
+      el("setPageTitle").value = st.branding?.pageTitle || ""; el("setEmojiFav").value = st.branding?.emojiFavicon || ""; el("setFooterText").value = st.branding?.footerText || "";
+
+      const ep = st.effectivePlan, isStarter = ep === "starter", isAgency = ep === "agency";
+      el("lockedHint").classList.toggle("hidden", !isStarter);
+      ["setFreeAbove","setCodFee","setCityFees","setUpsellEnabled","setUpsellType","setUpsellVal","setUpsellOv","setColor","setLogoUrl"].forEach((id) => { el(id).disabled = isStarter; });
+      ["setPageTitle","setEmojiFav","setFooterText"].forEach((id) => { el(id).disabled = !isAgency; });
+
+      el("agencySection").classList.toggle("hidden", state.primaryPlan !== "agency" || Boolean(st.parent));
+      el("childList").innerHTML = "";
+      state.children.forEach((c) => { const b = document.createElement("span"); b.className = "px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-semibold"; b.textContent = `${c.slug} (${c.status})`; el("childList").appendChild(b); });
+
+      renderPlanCards(ep);
+      el("payInstrBox").innerHTML = "";
+      [state.paymentInfo.sadapay, state.paymentInfo.easypaisa, state.paymentInfo.bank, state.paymentInfo.usdt, state.paymentInfo.payoneer, state.paymentInfo.instructions].filter(Boolean).forEach((line) => {
+        const p = document.createElement("p"); p.textContent = line; el("payInstrBox").appendChild(p);
+      });
+      el("myReqList").innerHTML = "";
+      (data.requests || []).forEach((r) => {
+        const d = document.createElement("div"); d.className = "p-2 rounded-lg bg-slate-50 border border-slate-200 flex justify-between";
+        d.textContent = `${r.plan.toUpperCase()} (${r.months}mo) · ${r.method} Ref: ${r.txnRef} — ${r.status.toUpperCase()}${r.rejectReason ? ` (${r.rejectReason})` : ""}`;
+        el("myReqList").appendChild(d);
+      });
+      updateGeneratedUrl(); resetIdleTimer();
+    }
+
+    function renderPlanCards(current) {
+      const wrap = el("planCards"); wrap.innerHTML = "";
+      [
+        { k: "starter", t: "Starter", p: "Free (Rs 0)", d: "15 orders/mo · 30 products · Flat delivery · Powered-by badge" },
+        { k: "growth", t: "Growth", p: "Rs 1,299/mo · $4.99/mo", d: "400 orders/mo · 150 products · City rules & free shipping · Custom upsell & branding" },
+        { k: "agency", t: "Agency", p: "Rs 4,499/mo · $16.50/mo", d: "2,500 pooled orders · 10 stores · 250 products · Full white-label" }
+      ].forEach((c) => {
+        const div = document.createElement("div");
+        div.className = `p-4 rounded-2xl border ${current === c.k ? "border-teal-600 bg-teal-50/40" : "border-slate-200 bg-white"}`;
+        div.innerHTML = `<div class="flex justify-between items-center"><h3 class="font-bold">${c.t}</h3>${current === c.k ? '<span class="text-[11px] font-bold text-teal-700">CURRENT</span>' : ""}</div><p class="text-sm font-extrabold text-teal-700 mt-1">${c.p}</p><p class="text-xs text-slate-600 mt-2">${c.d}</p>`;
+        wrap.appendChild(div);
+      });
+    }
+
+    el("storeSwitcher").addEventListener("change", async (e) => { state.activeSlug = e.target.value; await loadDashboard(); });
+    el("testConnBtn").addEventListener("click", async () => {
+      el("testConnBtn").disabled = true;
+      const { data } = await api("/api/owner/test-connection", "POST", {});
+      el("testConnBtn").disabled = false;
+      const box = el("testResults"); box.innerHTML = ""; box.classList.remove("hidden");
+      (data.checks || []).forEach((c) => {
+        const row = document.createElement("div"); row.className = "text-xs p-2 rounded-lg bg-white border border-slate-200";
+        row.innerHTML = `<div class="font-bold ${c.ok ? "text-emerald-700" : "text-rose-700"}">${c.ok ? "✓ PASS" : "✕ FAIL"} — ${c.label}</div><div class="text-slate-600 mt-0.5"></div>`;
+        row.children[1].textContent = c.detail + (c.fix ? ` | Fix: ${c.fix}` : "");
+        box.appendChild(row);
+      });
+      if (data.ok) { toast("Shopify connected!"); loadDashboard(); }
+    });
+
+    el("saveCredsBtn").addEventListener("click", async () => {
+      const mode = document.querySelector('input[name="rotMode"]:checked').value;
+      const conn = mode === "legacy" ? { mode, token: el("rotToken").value.trim() } : { mode, clientId: el("rotClientId").value.trim(), clientSecret: el("rotClientSecret").value.trim() };
+      const { res, data } = await api("/api/owner/rotate-credentials", "POST", { conn });
+      toast(res.ok ? "Credentials updated!" : data.message);
+      if (res.ok) loadDashboard();
+    });
+
+    el("savePinBtn").addEventListener("click", async () => {
+      const { res, data } = await api("/api/owner/rotate-credentials", "POST", { currentPin: el("curPin").value.trim(), newPin: el("newPin").value.trim() });
+      toast(res.ok ? "PIN updated!" : data.message);
+      if (res.ok) { el("curPin").value = ""; el("newPin").value = ""; }
+    });
+
+    el("saveSettingsBtn").addEventListener("click", async () => {
+      const cityFees = {}; el("setCityFees").value.split("\n").forEach((l) => { const [c, f] = l.split(":"); if (c && f !== undefined) cityFees[c.trim()] = Number(f.trim()); });
+      const overrides = {}; el("setUpsellOv").value.split("\n").forEach((l) => { const [h, t, v] = l.split(":"); if (h && v !== undefined) overrides[h.trim()] = { type: (t || "").trim(), value: Number(v.trim()) }; });
+      const { res, data } = await api("/api/owner/update", "POST", {
+        whatsapp: el("setWa").value.trim(),
+        deliveryRules: { baseFee: Number(el("setBaseFee").value), freeAbove: Number(el("setFreeAbove").value), codFee: Number(el("setCodFee").value), cityFees },
+        upsell: { enabled: el("setUpsellEnabled").checked, type: el("setUpsellType").value, value: Number(el("setUpsellVal").value), overrides },
+        branding: { color: el("setColor").value, logoUrl: el("setLogoUrl").value.trim(), pageTitle: el("setPageTitle").value.trim(), emojiFavicon: el("setEmojiFav").value.trim(), footerText: el("setFooterText").value.trim() }
+      });
+      toast(res.ok ? "Settings saved!" : data.message);
+      if (res.ok) loadDashboard();
+    });
+
+    el("refreshProdsBtn").addEventListener("click", async () => {
+      const { res, data } = await api("/api/owner/products");
+      if (!res.ok) return toast(data.message);
+      const sel = el("linkProdSelect"); sel.innerHTML = '<option value="">All Products (General Store Link)</option>';
+      (data.products || []).forEach((p) => { const o = document.createElement("option"); o.value = p.handle; o.textContent = p.title; sel.appendChild(o); });
+      toast(`Loaded ${(data.products || []).length} products`); updateGeneratedUrl();
+    });
+    el("linkProdSelect").addEventListener("change", updateGeneratedUrl);
+    el("linkSrc").addEventListener("input", updateGeneratedUrl);
+    el("copyUrlBtn").addEventListener("click", async () => { await navigator.clipboard.writeText(el("generatedUrl").value); toast("Link copied!"); });
+    el("copyQrBtn").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(`Assalam-o-Alaikum! Order karne ke liye neeche link par tap karein (Cash on Delivery):\n${el("generatedUrl").value}`);
+      toast("WhatsApp Quick Reply copied!");
+    });
+
+    async function loadUsage() {
+      const { res, data } = await api("/api/owner/usage");
+      if (!res.ok) return;
+      const pct = data.limit > 0 ? Math.min(100, Math.round((data.used / data.limit) * 100)) : 100;
+      el("usageCounts").textContent = `${data.used} / ${data.limit} orders${data.pooled ? " (Pooled)" : ""}`;
+      el("usagePct").textContent = `${pct}%`; el("usageBar").style.width = `${pct}%`;
+      el("usageBar").className = `h-full transition-all ${pct >= 100 ? "bg-rose-600" : pct >= 80 ? "bg-amber-500" : "bg-emerald-600"}`;
+      el("usageWaWarn").classList.toggle("hidden", data.mode !== "whatsapp_only");
+      el("uPlan").textContent = data.plan; el("uExpiry").textContent = data.planExpiresAt ? new Date(data.planExpiresAt).toLocaleDateString() : "Lifetime";
+      el("uReset").textContent = data.resetDate; el("uOver").textContent = `${data.over || 0} (Rs ${(data.over || 0) * (data.overageRatePKR || 0)})`;
+    }
+
+    el("addChildBtn").addEventListener("click", async () => {
+      const { res, data } = await api("/api/owner/child-store", "POST", {
+        slug: el("chSlug").value.trim(), brand: el("chBrand").value.trim(), domain: el("chDomain").value.trim(),
+        whatsapp: el("chWa").value.trim(), conn: { mode: "devdash", clientId: el("chCid").value.trim(), clientSecret: el("chCsec").value.trim() }
+      });
+      toast(res.ok ? "Child store added!" : data.message);
+      if (res.ok) loadDashboard();
+    });
+
+    el("submitUpgradeBtn").addEventListener("click", async () => {
+      const plan = el("upPlan").value, months = Number(el("upMonths").value), method = el("upMethod").value, txnRef = el("upTxnRef").value.trim(), note = el("upNote").value.trim();
+      const { res, data } = await api("/api/owner/upgrade-request", "POST", { plan, months, method, txnRef, note });
+      if (!res.ok) return toast(data.message);
+      toast("Upgrade request submitted!");
+      if (state.supportWa) {
+        el("upgradeWaLink").href = `https://wa.me/${state.supportWa}?text=${encodeURIComponent(`Hi! I submitted a WA Express COD upgrade request.\nStore: ${state.primarySlug}\nPlan: ${plan} (${months} mo)\nMethod: ${method}\nRef: ${txnRef}`)}`;
+        el("upgradeWaWrap").classList.remove("hidden");
+      }
+      loadDashboard();
+    });
+
+    if (state.token) loadDashboard();
+  </script>
+</body>
+</html>

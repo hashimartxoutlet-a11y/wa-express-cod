@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https:; connect-src 'self' https:;" />
+  <title>Super Admin · WA Express COD</title>
+  <script>
+    const CONFIG = {
+      API_BASE: "https://wa-express-cod.YOUR-SUBDOMAIN.workers.dev",
+      TURNSTILE_SITE_KEY: "",
+      FRONTEND_BASE: "https://your-pages-domain.pages.dev",
+      BRAND_NAME: "WA Express COD"
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+<script src="/_aistudio-iframe.js?v=29045eb3"></script></head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <header class="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div>
+        <h1 class="text-xl font-extrabold">WA Express COD · Super Admin</h1>
+        <p class="text-xs text-slate-500">Protect this page with Cloudflare Access in production</p>
+      </div>
+      <button id="adminLogout" type="button" class="hidden px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold">Lock Session</button>
+    </header>
+
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm shadow-lg"></div>
+
+    <section id="loginBox" class="max-w-sm mx-auto bg-white border border-slate-200 rounded-2xl p-6 space-y-3 shadow-sm">
+      <h2 class="font-bold text-base">Enter Super Admin Key</h2>
+      <input id="adminKeyInput" type="password" placeholder="SUPER_ADMIN_KEY" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+      <p id="loginErr" class="hidden text-xs text-rose-600"></p>
+      <button id="adminLoginBtn" type="button" class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm">Unlock Console</button>
+    </section>
+
+    <div id="consoleBox" class="hidden space-y-6">
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4"><p class="text-xs text-slate-500">Stores by Plan</p><p id="kpiPlans" class="text-sm font-extrabold mt-1"></p></div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4"><p class="text-xs text-slate-500">Orders This Month (Page)</p><p id="kpiOrders" class="text-xl font-extrabold mt-1 text-teal-700"></p></div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4"><p class="text-xs text-slate-500">Estimated MRR (PKR)</p><p id="kpiMrrPkr" class="text-xl font-extrabold mt-1"></p></div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4"><p class="text-xs text-slate-500">Estimated MRR (USD)</p><p id="kpiMrrUsd" class="text-xl font-extrabold mt-1"></p></div>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
+        <h2 class="font-bold text-base">Upgrade Requests</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 text-slate-600 uppercase"><tr><th class="p-2">Store</th><th class="p-2">Plan</th><th class="p-2">Months</th><th class="p-2">Method / Ref</th><th class="p-2">Status</th><th class="p-2">Actions</th></tr></thead>
+            <tbody id="reqTbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="font-bold text-base">Stores (25 / page)</h2>
+          <div class="flex flex-wrap gap-2">
+            <input id="fSearch" type="search" placeholder="Search slug or brand" class="px-3 py-1.5 border border-slate-300 rounded-xl text-xs" />
+            <select id="fPlan" class="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs bg-white"><option value="">All Plans</option><option value="starter">Starter</option><option value="growth">Growth</option><option value="agency">Agency</option></select>
+            <select id="fStatus" class="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs bg-white"><option value="">All Status</option><option value="active">Active</option><option value="pending_connection">Pending</option><option value="suspended">Suspended</option></select>
+            <button id="exportCsvBtn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 text-slate-600 uppercase"><tr><th class="p-2">Slug / Brand</th><th class="p-2">Plan &amp; Expiry</th><th class="p-2">Usage</th><th class="p-2">Status</th><th class="p-2">Actions</th></tr></thead>
+            <tbody id="storesTbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+        <div class="flex justify-between items-center text-xs pt-2">
+          <span id="pageInfo"></span>
+          <div class="flex gap-2">
+            <button id="prevPage" type="button" class="px-3 py-1 rounded border border-slate-300">Prev</button>
+            <button id="nextPage" type="button" class="px-3 py-1 rounded border border-slate-300">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 space-y-2.5 shadow-sm">
+          <h2 class="font-bold text-base">Payment Instructions (cfg:payment)</h2>
+          <input id="pSada" type="text" placeholder="SadaPay" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" />
+          <input id="pEasy" type="text" placeholder="Easypaisa" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" />
+          <input id="pBank" type="text" placeholder="Bank Transfer / IBAN" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" />
+          <input id="pUsdt" type="text" placeholder="USDT (TRC20)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" />
+          <input id="pPayo" type="text" placeholder="Payoneer" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" />
+          <textarea id="pInst" rows="2" placeholder="Instructions" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"></textarea>
+          <button id="savePayBtn" type="button" class="px-4 py-2 rounded-xl bg-teal-700 text-white text-xs font-bold">Save Payment Info</button>
+        </section>
+
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 space-y-2 shadow-sm">
+          <h2 class="font-bold text-base">Audit Log (Last 50)</h2>
+          <div id="auditBox" class="max-h-72 overflow-y-auto space-y-1 text-xs font-mono text-slate-700"></div>
+        </section>
+      </div>
+    </div>
+
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-xl">
+        <h3 id="modalTitle" class="font-bold text-base">Confirm Action</h3>
+        <p id="modalMsg" class="text-xs text-slate-600"></p>
+        <input id="modalInput" type="text" class="hidden w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+        <div class="flex justify-end gap-2 pt-2">
+          <button id="modalCancel" type="button" class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancel</button>
+          <button id="modalConfirm" type="button" class="px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    let adminKey = sessionStorage.getItem("wa_admin_key") || "";
+    let page = 1, currentStores = [], pendingModalCb = null;
+
+    function toast(m) { el("toast").textContent = m; el("toast").classList.remove("hidden"); setTimeout(() => el("toast").classList.add("hidden"), 2500); }
+
+    async function api(path, method = "GET", body = null) {
+      const headers = { "X-Admin-Key": adminKey };
+      if (body !== null) headers["Content-Type"] = "text/plain;charset=UTF-8";
+      const res = await fetch(`${CONFIG.API_BASE}${path}`, { method, headers, body: body !== null ? JSON.stringify(body) : undefined });
+      const data = await res.json();
+      return { res, data };
+    }
+
+    function openModal(title, msg, withInput, cb) {
+      el("modalTitle").textContent = title; el("modalMsg").textContent = msg;
+      el("modalInput").value = ""; el("modalInput").classList.toggle("hidden", !withInput);
+      pendingModalCb = cb; el("confirmModal").classList.remove("hidden");
+    }
+    el("modalCancel").addEventListener("click", () => { el("confirmModal").classList.add("hidden"); pendingModalCb = null; });
+    el("modalConfirm").addEventListener("click", async () => {
+      const val = el("modalInput").value.trim(), cb = pendingModalCb;
+      el("confirmModal").classList.add("hidden"); pendingModalCb = null;
+      if (cb) await cb(val);
+    });
+
+    async function loadAll() {
+      const params = new URLSearchParams({ page, limit: 25, q: el("fSearch").value.trim(), plan: el("fPlan").value, status: el("fStatus").value });
+      const [sRes, rRes] = await Promise.all([api(`/api/admin/stores?${params}`), api("/api/admin/requests")]);
+      if (!sRes.res.ok) {
+        sessionStorage.removeItem("wa_admin_key");
+        el("loginErr").textContent = sRes.data.message || "Unauthorized"; el("loginErr").classList.remove("hidden");
+        el("loginBox").classList.remove("hidden"); el("consoleBox").classList.add("hidden");
+        return;
+      }
+      el("loginBox").classList.add("hidden"); el("consoleBox").classList.remove("hidden"); el("adminLogout").classList.remove("hidden");
+
+      const sum = sRes.data.summary;
+      el("kpiPlans").textContent = `S:${sum.countsByPlan.starter} · G:${sum.countsByPlan.growth} · A:${sum.countsByPlan.agency}`;
+      el("kpiOrders").textContent = sum.ordersThisMonth;
+      el("kpiMrrPkr").textContent = `Rs ${sum.mrrPKR.toLocaleString("en-US")}`;
+      el("kpiMrrUsd").textContent = `$${sum.mrrUSD.toFixed(2)}`;
+
+      currentStores = sRes.data.stores || [];
+      el("pageInfo").textContent = `Page ${sRes.data.page} · Total ${sRes.data.total} stores`;
+      renderStores(currentStores);
+
+      if (rRes.res.ok) {
+        renderRequests(rRes.data.requests || []);
+        const pi = rRes.data.paymentInfo || {};
+        el("pSada").value = pi.sadapay || ""; el("pEasy").value = pi.easypaisa || ""; el("pBank").value = pi.bank || "";
+        el("pUsdt").value = pi.usdt || ""; el("pPayo").value = pi.payoneer || ""; el("pInst").value = pi.instructions || "";
+
+        el("auditBox").innerHTML = "";
+        (rRes.data.auditLog || []).forEach((a) => {
+          const d = document.createElement("div"); d.className = "p-1.5 rounded bg-slate-50 border border-slate-100";
+          d.textContent = `${new Date(a.ts).toISOString().slice(0,16).replace("T"," ")} | ${a.action} | ${a.target} | ${a.detail}`;
+          el("auditBox").appendChild(d);
+        });
+      }
+    }
+
+    function renderRequests(list) {
+      const tb = el("reqTbody"); tb.innerHTML = "";
+      list.forEach((r) => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td"); td1.className = "p-2 font-bold"; td1.textContent = r.slug;
+        const td2 = document.createElement("td"); td2.className = "p-2 uppercase"; td2.textContent = r.plan;
+        const td3 = document.createElement("td"); td3.className = "p-2"; td3.textContent = r.months;
+        const td4 = document.createElement("td"); td4.className = "p-2"; td4.textContent = `${r.method} (${r.txnRef})`;
+        const td5 = document.createElement("td"); td5.className = "p-2 font-bold"; td5.textContent = r.status;
+        const td6 = document.createElement("td"); td6.className = "p-2 flex gap-1.5";
+        if (r.status === "pending") {
+          const bApp = document.createElement("button"); bApp.className = "px-2 py-1 rounded bg-emerald-600 text-white font-bold"; bApp.textContent = "Approve";
+          bApp.onclick = async () => { await api("/api/admin/approve", "POST", { id: r.id, plan: r.plan, months: r.months }); toast("Approved"); loadAll(); };
+          const bRej = document.createElement("button"); bRej.className = "px-2 py-1 rounded bg-rose-600 text-white font-bold"; bRej.textContent = "Reject";
+          bRej.onclick = () => openModal("Reject Request", `Reason for rejecting ${r.slug}:`, true, async (reason) => { await api("/api/admin/reject", "POST", { id: r.id, reason }); toast("Rejected"); loadAll(); });
+          td6.append(bApp, bRej);
+        } else td6.textContent = "—";
+        tr.append(td1, td2, td3, td4, td5, td6); tb.appendChild(tr);
+      });
+    }
+
+    function renderStores(list) {
+      const tb = el("storesTbody"); tb.innerHTML = "";
+      list.forEach((s) => {
+        const tr = document.createElement("tr");
+        const pct = s.limit > 0 ? Math.min(100, Math.round((s.used / s.limit) * 100)) : 100;
+        const td1 = document.createElement("td"); td1.className = "p-2";
+        td1.innerHTML = `<div class="font-bold"></div><div class="text-slate-500"></div>`;
+        td1.children[0].textContent = `${s.slug}${s.parent ? ` (child of ${s.parent})` : ""}`;
+        td1.children[1].textContent = `${s.brand} · ${s.domain}`;
+
+        const td2 = document.createElement("td"); td2.className = "p-2";
+        td2.textContent = `${s.effectivePlan.toUpperCase()} (${s.planExpiresAt ? new Date(s.planExpiresAt).toLocaleDateString() : "—"})`;
+
+        const td3 = document.createElement("td"); td3.className = "p-2 w-40";
+        td3.innerHTML = `<div class="text-[11px]">${s.used}/${s.limit} (+${s.over} over)</div><div class="w-full h-2 bg-slate-200 rounded-full mt-1 overflow-hidden"><div class="h-full ${pct>=100?"bg-rose-600":pct>=80?"bg-amber-500":"bg-emerald-600"}" style="width:${pct}%"></div></div>`;
+
+        const td4 = document.createElement("td"); td4.className = "p-2 font-bold"; td4.textContent = s.status;
+        const td5 = document.createElement("td"); td5.className = "p-2 flex flex-wrap gap-1";
+        const mkBtn = (txt, cls, fn) => { const b = document.createElement("button"); b.className = `px-2 py-1 rounded text-[11px] font-bold ${cls}`; b.textContent = txt; b.onclick = fn; return b; };
+
+        td5.append(
+          mkBtn("Plan", "bg-slate-200", () => openModal("Set Plan", `Enter plan for ${s.slug} (starter, growth, agency):`, true, async (p) => {
+            if (!["starter","growth","agency"].includes(p)) return toast("Invalid plan");
+            await api("/api/admin/set-plan", "POST", { slug: s.slug, plan: p, months: 1 }); toast("Plan updated"); loadAll();
+          })),
+          mkBtn("+30d", "bg-teal-100 text-teal-800", async () => { await api("/api/admin/extend", "POST", { slug: s.slug, days: 30 }); toast("Extended 30d"); loadAll(); }),
+          mkBtn("Bonus", "bg-indigo-100 text-indigo-800", () => openModal("Add Bonus Orders", `Add bonus orders for ${s.slug}:`, true, async (v) => {
+            await api("/api/admin/bonus", "POST", { slug: s.slug, bonusOrders: parseInt(v, 10) || 0 }); toast("Bonus updated"); loadAll();
+          })),
+          mkBtn("Reset Usage", "bg-amber-100 text-amber-800", () => openModal("Reset Monthly Usage", `Reset usage counter for ${s.slug}?`, false, async () => {
+            await api("/api/admin/reset-usage", "POST", { slug: s.slug }); toast("Usage reset"); loadAll();
+          })),
+          s.status === "suspended"
+            ? mkBtn("Unsuspend", "bg-emerald-600 text-white", async () => { await api("/api/admin/unsuspend", "POST", { slug: s.slug }); toast("Unsuspended"); loadAll(); })
+            : mkBtn("Suspend", "bg-rose-600 text-white", () => openModal("Suspend Store", `Suspend checkout for ${s.slug}?`, false, async () => {
+                await api("/api/admin/suspend", "POST", { slug: s.slug }); toast("Suspended"); loadAll();
+              }))
+        );
+        tr.append(td1, td2, td3, td4, td5); tb.appendChild(tr);
+      });
+    }
+
+    el("adminLoginBtn").addEventListener("click", () => { adminKey = el("adminKeyInput").value.trim(); if (!adminKey) return; sessionStorage.setItem("wa_admin_key", adminKey); loadAll(); });
+    el("adminLogout").addEventListener("click", () => { adminKey = ""; sessionStorage.removeItem("wa_admin_key"); el("consoleBox").classList.add("hidden"); el("adminLogout").classList.add("hidden"); el("loginBox").classList.remove("hidden"); });
+    ["fSearch","fPlan","fStatus"].forEach((id) => el(id).addEventListener("change", () => { page = 1; loadAll(); }));
+    el("prevPage").addEventListener("click", () => { if (page > 1) { page--; loadAll(); } });
+    el("nextPage").addEventListener("click", () => { page++; loadAll(); });
+    el("savePayBtn").addEventListener("click", async () => {
+      const { res } = await api("/api/admin/payment-info", "POST", { sadapay: el("pSada").value, easypaisa: el("pEasy").value, bank: el("pBank").value, usdt: el("pUsdt").value, payoneer: el("pPayo").value, instructions: el("pInst").value });
+      toast(res.ok ? "Payment instructions saved" : "Error saving");
+    });
+    el("exportCsvBtn").addEventListener("click", () => {
+      const rows = [["slug","brand","domain","plan","status","used","limit","over"]];
+      currentStores.forEach((s) => rows.push([s.slug, s.brand, s.domain, s.effectivePlan, s.status, s.used, s.limit, s.over]));
+      const csv = rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" })); a.download = `wa-express-cod-stores-p${page}.csv`; a.click();
+    });
+    if (adminKey) loadAll();
+  </script>
+</body>
+</html>
